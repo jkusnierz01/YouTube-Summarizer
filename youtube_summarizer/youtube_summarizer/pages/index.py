@@ -1,23 +1,44 @@
 from reflex_motion import motion
 import reflex as rx
 from rxconfig import config
-from pipeline.full import pipeline
+import requests
+import re
 
 
-
-class FromInputState(rx.State):
+class FormInputState(rx.State):
     """_summary_
 
     Args:
         rx (_type_): _description_
     """
     url: str = ""
-    
-    def submit(self,form_data:dict):
+    is_disable: bool = True
+
+    def submit(self, form_data: dict):
         self.url = form_data.get("url")
-        pipeline(self.url)
-        
-    
+        try:
+            response_redirect = requests.post(
+                url=f"http://0.0.0.0:80/process?url={self.url}")
+        except Exception as e:
+            print(f"Exception: {e}")
+        if response_redirect.status_code == 200:
+            print("Success!")
+            request_id = response_redirect.json()['request_id']
+            return rx.redirect(f"http://localhost:3000/output?{request_id}")
+        else:
+            raise Exception
+
+    def check_regex(self, url_: str):
+        self.url = url_
+        regex = r"https://www\.youtube\.com/watch\?v=(.+)"
+        try:
+            if re.search(regex, self.url) != None:
+                self.is_disable = False
+            else:
+                self.is_disable = True
+        except:
+            pass
+
 
 def index() -> rx.Component:
     """_summary_
@@ -56,23 +77,26 @@ def index() -> rx.Component:
             rx.vstack(
                 rx.form(
                     rx.vstack(
-                    rx.input(
-                        name='url',
-                        radius="full",
-                        width="200%",
-                        placeholder="Input url...",
-                        required=True,
+                        rx.input(
+                            name='url',
+                            radius="full",
+                            width="200%",
+                            placeholder="Input url...",
+                            required=True,
+                            on_change=FormInputState.check_regex
                         ),
-                    motion(
-                        rx.button("Submit",type='submit',align='center',color_scheme='tomato'),
-                        while_hover={"scale": 1.2},
-                        while_tap={"scale": 0.9},
-                        transition={"type": "spring", "stiffness": 400, "damping": 17},
+                        motion(
+                            rx.button("Submit", type='submit', align='center',
+                                      color_scheme='tomato', disabled=FormInputState.is_disable),
+                            while_hover={"scale": 1.2},
+                            while_tap={"scale": 0.9},
+                            transition={"type": "spring",
+                                        "stiffness": 400, "damping": 17},
                         ),
-                    width = '100%',
-                    align='center'
+                        width='100%',
+                        align='center'
                     ),
-                    on_submit=FromInputState.submit,
+                    on_submit=FormInputState.submit,
                     reset_on_submit=True
                 ),
             ),

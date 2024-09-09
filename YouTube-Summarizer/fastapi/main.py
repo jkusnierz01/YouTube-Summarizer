@@ -1,4 +1,3 @@
-import yt_dlp
 import os
 import tempfile
 from fastapi import FastAPI, HTTPException

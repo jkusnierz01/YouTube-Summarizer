@@ -1,5 +1,5 @@
 import reflex as rx
 
 config = rx.Config(
-    app_name="youtube_summarizer",
+    app_name="reflex_app",
 )

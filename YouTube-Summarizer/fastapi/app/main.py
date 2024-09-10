@@ -22,13 +22,17 @@ app = FastAPI(lifespan=lifespan)
 
 transcription = {}
 
+
+async def make_transcription(path: os.path) -> str:
+    return ml_models["whisper"].transcribe(path)
+
 @app.post("/process")
 async def pipeline(url: str):
     request_id = str(uuid.uuid4())
     with tempfile.TemporaryDirectory() as fd:
         os.system(f"yt-dlp -x --audio-format wav -P {fd} -o audio.wav {url}")
         path = os.path.join(fd,"audio.wav")
-        result = ml_models["whisper"].transcribe(path)
+        result = await make_transcription(path)
         transcription[request_id] = result['text']
         return {"request_id": request_id}
     

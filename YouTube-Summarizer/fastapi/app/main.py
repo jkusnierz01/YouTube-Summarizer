@@ -1,19 +1,34 @@
 import os
+import sys
 import tempfile
 from fastapi import FastAPI, HTTPException
 import whisper
 from contextlib import asynccontextmanager
 import uuid
+import torch
+from pyannote.audio import Pipeline
 
-def load_model():
+def load_whisper():
     model = whisper.load_model("base")
     return model
+
+def load_diarization_pipeline():
+    try:
+        pipeline = Pipeline.from_pretrained(
+            "pyannote/speaker-diarization-3.1",
+            use_auth_token = os.environ['HUGGING_FACE_TOKEN']
+        )
+        return pipeline
+    except KeyError:
+        raise RuntimeError("Hugging Face token is missing!")
+        # sys.exit(1)
 
 ml_models = {}
 
 @asynccontextmanager
 async def lifespan(app:FastAPI):
-    ml_models['whisper'] = load_model()
+    ml_models['whisper'] = load_whisper()
+    ml_models['speaker_diarization'] = load_diarization_pipeline()
     yield
     ml_models.clear()
     
@@ -25,6 +40,12 @@ transcription = {}
 
 async def make_transcription(path: os.path) -> str:
     return ml_models["whisper"].transcribe(path)
+
+async def perform_diarization(path: os.path) -> None:
+    if torch.cuda.is_available():
+        pipeline.to(torch.device("cuda"))
+    diarization = ml_models["speaker_diarization"].pipeline(path)
+    
 
 @app.post("/process")
 async def pipeline(url: str):

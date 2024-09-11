@@ -12,6 +12,7 @@ numpy = "<2"
 nltk = "3.6.5"
 accelerate = "^0.33.0"
 websockets = "^13.0"
+torch = "^2.4.1"
 
 
 [tool.poetry.group.fastapi.dependencies]
@@ -20,6 +21,7 @@ uuid = "^1.30"
 yt-dlp = "^2024.8.6"
 fastapi = "0.110.1"
 uvicorn = "^0.22.0"
+pyannote-audio = "^3.3.2"
 
 [tool.poetry.group.reflex.dependencies]
 reflex = "^0.5.9"

@@ -29,11 +29,20 @@ export DOCKER_BUILDKIT=1
 ```
 ## Usage
 
+```bash
+curl --request POST \    --url http://0.0.0.0:8000/completion \     
+    --header "Content-Type: application/json" \
+    --data '{"prompt": "Building a website can be done in 10 simple steps:","n_predict": 128}' 2>/dev/null | jq -C | less
+```
+
+```bash
+docker run -v absolute_path:/models -p 8000:8000 llm -m /models/llama-2-7b-chat.Q5_K_M.gguf --port 8000 --host 0.0.0.0 -n 512
+```
 
 TO BE CONTINUED
 
 ```python
-import foobar
+
 
 # returns 'words'
 foobar.pluralize('word')

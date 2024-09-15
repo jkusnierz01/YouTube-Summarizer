@@ -45,7 +45,17 @@ async def perform_diarization(path: os.path) -> None:
     if torch.cuda.is_available():
         pipeline.to(torch.device("cuda"))
     diarization = ml_models["speaker_diarization"].pipeline(path)
+    ### continue...
     
+
+@app.get("/get_transcription")
+async def get_transc(request_id:str):
+    print(f"Received request_id: {request_id}")
+    if request_id in transcription:
+        result = transcription[request_id]
+        return {"transcription": result}
+    else:
+        raise HTTPException(status_code=404, detail="RequestID is not found!")
 
 @app.post("/process")
 async def pipeline(url: str):
@@ -57,15 +67,6 @@ async def pipeline(url: str):
         transcription[request_id] = result['text']
         return {"request_id": request_id}
     
-    
-@app.get("/get_transcription")
-async def get_transc(request_id:str):
-    print(f"Received request_id: {request_id}")
-    if request_id in transcription:
-        result = transcription[request_id]
-        return {"transcription": result}
-    else:
-        raise HTTPException(status_code=404, detail="RequestID is not found!")
         
         
         

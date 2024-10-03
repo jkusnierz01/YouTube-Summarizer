@@ -1,0 +1,29 @@
+version: "3.8"
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: ./reflex-app/Dockerfile
+    ports:
+      - "9000:9000"
+  backend:
+    build:
+      context: .
+      dockerfile: ./fastapi/Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - HUGGING_FACE_TOKEN
+  llm:
+    image: ghcr.io/ggerganov/llama.cpp:server
+    ports:
+      - "4000:8000"
+    volumes:
+      - /Users/jedrzejkusnierz/Desktop/programowanie/repozytoria/YouTube-Summarizer/YouTube-Summarizer/llm/models/llama-2-7b-chat.Q5_K_M.gguf:/models/llama-2-7b-chat.Q5_K_M.gguf
+    command: [
+      "-m", "/models/llama-2-7b-chat.Q5_K_M.gguf",
+      "--port", "8000",
+      "--host", "0.0.0.0",
+      "-n", "512"
+    ]
+

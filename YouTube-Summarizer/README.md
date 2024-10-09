@@ -22,7 +22,8 @@ After that export your Hugging Face Token by running command:
 ```bash
 export HUGGING_FACE_TOKEN="your_token"
 ```
-and do not forget to accept (THIS HAS TO BE CHANGED - THINK ABOUT GETTING MODEL LOCALLY OR BY GITHUB REPO
+This is needed to properly run application in docker containers (needed for pyannote model).
+and do not forget to accept (THIS HAS TO BE CHANGED - THINK ABOUT GETTING MODEL LOCALLY OR BY GITHUB REPO)
 
 ```bash
 export DOCKER_BUILDKIT=1

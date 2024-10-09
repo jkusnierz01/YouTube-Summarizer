@@ -1,5 +1,4 @@
 import os
-import sys
 import tempfile
 from fastapi import FastAPI, HTTPException
 import whisper
@@ -7,6 +6,8 @@ from contextlib import asynccontextmanager
 import uuid
 import torch
 from pyannote.audio import Pipeline
+from pydub import AudioSegment
+from typing import List
 
 def load_whisper():
     model = whisper.load_model("base")
@@ -18,6 +19,8 @@ def load_diarization_pipeline():
             "pyannote/speaker-diarization-3.1",
             use_auth_token = os.environ['HUGGING_FACE_TOKEN']
         )
+        if torch.cuda.is_available():
+            pipeline.to(torch.device("cuda"))
         return pipeline
     except KeyError:
         raise RuntimeError("Hugging Face token is missing!")
@@ -41,11 +44,25 @@ transcription = {}
 async def make_transcription(path: os.path) -> str:
     return ml_models["whisper"].transcribe(path)
 
-async def perform_diarization(path: os.path) -> None:
-    if torch.cuda.is_available():
-        pipeline.to(torch.device("cuda"))
+def audio_preprocessing(path: os.path) -> None:
+    audio = AudioSegment.from_wav(path)
+    audio = audio.set_channels(1)
+    audio.set_sample_rate(16000)
+    audio.export(path, format = 'wav')
+
+
+async def perform_diarization(path: os.path) -> List:
+    audio_preprocessing()
     diarization = ml_models["speaker_diarization"].pipeline(path)
-    ### continue...
+    speker_segment_list = []
+    for segment,_,speaker in diarization.itertracks(yield_label=True):
+        speker_segment_list.append([segment,speaker])
+    return speker_segment_list
+
+def match_diarization_transcript(transciption, diarization):
+    
+    
+
     
 
 @app.get("/get_transcription")
@@ -63,8 +80,9 @@ async def pipeline(url: str):
     with tempfile.TemporaryDirectory() as fd:
         os.system(f"yt-dlp -x --audio-format wav -P {fd} -o audio.wav {url}")
         path = os.path.join(fd,"audio.wav")
-        result = await make_transcription(path)
-        transcription[request_id] = result['text']
+        transcript = await make_transcription(path)
+        diarization = await perform_diarization(path)
+        transcription[request_id] = transcript['text']
         return {"request_id": request_id}
     
         

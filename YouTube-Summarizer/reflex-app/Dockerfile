@@ -13,6 +13,6 @@ RUN apt-get update && apt-get install -y unzip curl && apt-get clean
 
 WORKDIR /code/reflex/
 
-EXPOSE 9000
+EXPOSE 3000
 
-CMD [ "poetry", "run", "reflex", "run", "--frontend-port", "9000" ]
+CMD [ "poetry", "run", "reflex", "run"]

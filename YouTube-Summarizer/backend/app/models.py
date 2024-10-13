@@ -20,3 +20,5 @@ def load_diarization():
         return pipeline
     except KeyError:
         raise RuntimeError("Hugging Face token is missing!")
+    
+    

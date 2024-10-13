@@ -9,7 +9,7 @@ RUN pip install poetry && \
 
 RUN apt-get update && apt-get install -y ffmpeg
 
-COPY ./fastapi/app /code/app
+COPY ./backend/app /code/app
 
 WORKDIR /code/app/
 

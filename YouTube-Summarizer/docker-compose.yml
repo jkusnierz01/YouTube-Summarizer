@@ -5,25 +5,38 @@ services:
       context: .
       dockerfile: ./reflex-app/Dockerfile
     ports:
-      - "9000:9000"
+      - "3000:3000"
+      - "8000:8000"
+    networks:
+      - app-network
   backend:
     build:
       context: .
-      dockerfile: ./fastapi/Dockerfile
+      dockerfile: ./backend/Dockerfile
     ports:
-      - "8080:80"
+      - "8080:8080"
+    mem_limit: 8g
+    cpus: "2.0"
     environment:
       - HUGGING_FACE_TOKEN
+    networks:
+      - app-network
   llm:
     image: ghcr.io/ggerganov/llama.cpp:server
     ports:
-      - "4000:8000"
+      - "4000:7000"
     volumes:
       - /Users/jedrzejkusnierz/Desktop/programowanie/repozytoria/YouTube-Summarizer/YouTube-Summarizer/llm/models/llama-2-7b-chat.Q5_K_M.gguf:/models/llama-2-7b-chat.Q5_K_M.gguf
     command: [
       "-m", "/models/llama-2-7b-chat.Q5_K_M.gguf",
-      "--port", "8000",
+      "--port", "7000",
       "--host", "0.0.0.0",
       "-n", "512"
     ]
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 

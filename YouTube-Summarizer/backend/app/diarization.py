@@ -1,8 +1,18 @@
 from pydub import AudioSegment
-from typing import List
-from main import ml_models
+from typing import List, Tuple
 import os
 from pyannote.core.segment import Segment
+import logging
+import psutil
+import torch
+
+
+logger = logging.getLogger(__name__)
+
+
+def log_cpu_memory_usage():
+    logger.info(f"CPU Usage: {psutil.cpu_percent()}%")
+    logger.info(f"Memory Usage: {psutil.virtual_memory().percent}%")
 
 
 def audio_preprocessing(path: os.path) -> None:
@@ -10,14 +20,19 @@ def audio_preprocessing(path: os.path) -> None:
 
     Args:
         path (os.path): _description_
-    """    
-    audio = AudioSegment.from_wav(path)
-    audio = audio.set_channels(1)
-    audio.set_sample_rate(16000)
-    audio.export(path, format='wav')
+    """  
+    logger.info(f"Audio {path} preprocessing started!")  
+    try:  
+        audio = AudioSegment.from_wav(path)
+        audio = audio.set_channels(1)
+        audio.set_sample_rate(16000)
+        audio.export(path, format='wav')
+    except Exception as e:
+        logger.error(f"Error during audio preprocessing: {e}")
+    logger.info(f"Audio {path} preprocessing success!") 
 
 
-async def perform_diarization(path: os.path) -> List[Segment,str]:
+async def perform_diarization(path: os.path, model) -> List[Tuple[Segment,str]]:
     """
 
     Args:
@@ -29,11 +44,19 @@ async def perform_diarization(path: os.path) -> List[Segment,str]:
         Example:
         [[<Segment(0.0309687, 4.26659)>, 'SPEAKER_00'],...]
     """    
-    # audio_preprocessing(path)
-    diarization = ml_models["speaker_diarization"].pipeline(path)
-    speaker_diar_list = []
-    for segment, _, speaker in diarization.itertracks(yield_label=True):
-        speaker_diar_list.append([segment, speaker])
+    audio_preprocessing(path)
+    try:
+        logger.info("Starting diarization...")
+        log_cpu_memory_usage()
+        with torch.no_grad():  # Disable gradient calculation to save memory
+            diarization = model(path)
+        log_cpu_memory_usage()
+        logger.info("Diarization completed!")
+        speaker_diar_list = []
+        for segment, _, speaker in diarization.itertracks(yield_label=True):
+            speaker_diar_list.append([segment, speaker])
+    except Exception as e:
+        logger.error(f"Error during diarization: {e}")
     
     return speaker_diar_list
 
@@ -49,14 +72,19 @@ def calculate_iou(transcript_segment: Segment, diarization_segment: Segment) -> 
     Returns:
         float: Value represents how both segments were aligned
     """
-    intersect_seg = transcript_segment.__and__(diarization_segment)
-    total_seg = transcript_segment.__or__(diarization_segment)
+    logger.info("Starting calculating IOU!")
+    try:
+        intersect_seg = transcript_segment.__and__(diarization_segment)
+        total_seg = transcript_segment.__or__(diarization_segment)
 
-    duration_intersect = intersect_seg.duration
-    total_duration = total_seg.duration
-    iou = duration_intersect / total_duration
+        duration_intersect = intersect_seg.duration
+        total_duration = total_seg.duration
+        iou = duration_intersect / total_duration
 
-    return iou
+        logger.info("Calculating IOU finished!")
+        return iou
+    except Exception as e:
+        logger.error("Error in IOU calculations")
 
 
 def create_speaker_sentences(transcript_segment: Segment, diarization_segment: Segment) -> List[str]:
@@ -75,6 +103,7 @@ def create_speaker_sentences(transcript_segment: Segment, diarization_segment: S
         Example:
         ['Hello','world',...]
     """
+    logger.info("Starting creating speaker sentences!")
     #just big numbers so we can find value closest to 0
     start_dist = 100
     end_dist = 100
@@ -105,10 +134,11 @@ def create_speaker_sentences(transcript_segment: Segment, diarization_segment: S
         if word['start'] >= time_start and word['end'] <= time_end:
             sentence.append(word['word'])
 
+    logger.info("Creation speaker sentences successfull!")
     return sentence
 
 
-def get_text_for_llm_prepared(sentences_list: List[List[str],str]) -> str:
+def get_text_for_llm_prepared(sentences_list: List[Tuple[List[str],str]]) -> str:
     """
 
     Args:
@@ -125,6 +155,7 @@ def get_text_for_llm_prepared(sentences_list: List[List[str],str]) -> str:
         SPEAKER_01: '...'
         "
     """    
+    logger.info("Starting preparation of text for LLM!")
     sentences = []
     previous_speaker = None
     text = ""
@@ -150,5 +181,6 @@ def get_text_for_llm_prepared(sentences_list: List[List[str],str]) -> str:
         if index == len(sentences_list) - 1:
             out_str = f" {previous_speaker}: '{text}'"
             sentences.append(out_str)
-    full_text = "\n".join(sentences)    
+    full_text = "\n".join(sentences)
+    logger.info("Preparation of string for LLM successfull!")  
     return full_text

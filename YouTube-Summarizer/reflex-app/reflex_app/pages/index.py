@@ -18,15 +18,16 @@ class FormInputState(rx.State):
         self.url = form_data.get("url")
         try:
             response_redirect = requests.post(
-                url=f"http://0.0.0.0:80/process?url={self.url}")
+                url=f"http://backend:8080/process?url={self.url}")
         except Exception as e:
-            print(f"Exception: {e}")
-        if response_redirect.status_code == 200:
-            print("Success!")
-            request_id = response_redirect.json()['request_id']
-            return rx.redirect(f"http://localhost:3000/output?{request_id}")
+            print(f"Exception: {e}, response: {response_redirect}")
         else:
-            raise Exception
+            if response_redirect.status_code == 200:
+                print("Success!")
+                request_id = response_redirect.json()['request_id']
+                return rx.redirect(f"http://localhost:3000/output?{request_id}")
+            else:
+                raise Exception
 
     def check_regex(self, url_: str):
         self.url = url_

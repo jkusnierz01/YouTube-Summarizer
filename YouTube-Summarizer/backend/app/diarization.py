@@ -1,4 +1,3 @@
-from pydub import AudioSegment
 from typing import List, Tuple
 import os
 from pyannote.core.segment import Segment
@@ -23,10 +22,16 @@ def audio_preprocessing(path: os.path) -> None:
     """  
     logger.info(f"Audio {path} preprocessing started!")  
     try:  
-        audio = AudioSegment.from_wav(path)
-        audio = audio.set_channels(1)
-        audio.set_sample_rate(16000)
-        audio.export(path, format='wav')
+        
+        ### potential changes
+        
+        
+        # audio = AudioSegment.from_wav(path)
+        # audio = audio.set_channels(1)
+        # audio.set_sample_rate(16000)
+        # audio.export(path, format='wav')
+        
+        os.system(f"ffmpeg -i {path} -ac 1 -ar 16000 {path} -y")
     except Exception as e:
         logger.error(f"Error during audio preprocessing: {e}")
     logger.info(f"Audio {path} preprocessing success!") 
@@ -130,6 +135,10 @@ def create_speaker_sentences(transcript_segment: Segment, diarization_segment: S
 
     #we iterate again to find words in the middle and create sentence related to
     #diarization speaker segment proposed
+    
+    #potentiall change
+    # time_start -= 0.1
+    # time_end += 0.1
     for word in transcript_segment['words']:
         if word['start'] >= time_start and word['end'] <= time_end:
             sentence.append(word['word'])

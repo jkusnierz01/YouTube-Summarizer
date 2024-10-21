@@ -3,14 +3,16 @@ import tempfile
 from fastapi import FastAPI, HTTPException
 from contextlib import asynccontextmanager
 import uuid
-from diarization import perform_diarization, calculate_iou, get_text_for_llm_prepared, create_speaker_sentences
-from transcription import make_transcription
-from models import load_whisper, load_diarization
+from diarization import perform_diarization, calculate_iou, get_text_for_llm_prepared, create_speaker_sentences, match_diarization_to_transcript
+from transcription import make_transcription, make_whisperx_transcription, trans_audio_alignment
+from models import load_whisper, load_diarization, load_whisperx, load_alignment_model
 from llm import request_llm
 from typing import List, Tuple
 from pyannote.core.segment import Segment
 from utils import setup_logging
 import logging
+import whisperx
+import torch
 
 ml_models = {}
 summarization = {}
@@ -22,7 +24,11 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app:FastAPI):
-    ml_models['whisper'] = load_whisper()
+    if torch.cuda.is_available():
+        ml_models['whisper'] = load_whisperx()
+        ml_models['alignment_model'], ml_models['alignment_tokenizer'] = load_alignment_model()
+    else:
+        ml_models['whisper'] = load_whisper()
     ml_models['speaker_diarization'] = load_diarization()
     yield
     ml_models.clear()
@@ -59,15 +65,17 @@ async def pipeline(url: str):
     with tempfile.TemporaryDirectory() as fd:
         os.system(f"yt-dlp -x --audio-format wav -P {fd} -o audio.wav {url}")
         path = os.path.join(fd,"audio.wav")
-        transcription_list, transcription = await make_transcription(path, ml_models["whisper"])
-        diarization_list = await perform_diarization(path, ml_models["speaker_diarization"])
-        data_to_prompt = match_diarization_and_transcription(transcription_list, diarization_list, transcription)
-        print(data_to_prompt)
+        if torch.cuda.is_available():
+            audio = whisperx.load_audio(path)
+            transcription = make_whisperx_transcription(audio, ml_models["whisper"])
+            alignment = trans_audio_alignment(ml_models['alignment_model'], ml_models['alignment_tokenizer'], audio, transcription)
+            diarization = perform_diarization(path, ml_models["speaker_diarization"])
+            data_to_prompt = match_diarization_to_transcript(diarization, alignment)
+        else:
+            transcription_list, transcription = make_transcription(path, ml_models["whisper"])
+            diarization_list = perform_diarization(path, ml_models["speaker_diarization"])
+            data_to_prompt = match_diarization_and_transcription(transcription_list, diarization_list, transcription)
         summary = request_llm(data_to_prompt)
         summarization[request_id] = summary
         return {"request_id": request_id}
-    
-        
-        
-        
-    
+

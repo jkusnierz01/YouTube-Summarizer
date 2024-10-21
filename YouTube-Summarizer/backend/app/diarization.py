@@ -1,10 +1,11 @@
-from pydub import AudioSegment
 from typing import List, Tuple
 import os
 from pyannote.core.segment import Segment
 import logging
 import psutil
 import torch
+import tempfile
+import shutil
 
 
 logger = logging.getLogger(__name__)
@@ -23,16 +24,29 @@ def audio_preprocessing(path: os.path) -> None:
     """  
     logger.info(f"Audio {path} preprocessing started!")  
     try:  
-        audio = AudioSegment.from_wav(path)
-        audio = audio.set_channels(1)
-        audio.set_sample_rate(16000)
-        audio.export(path, format='wav')
+        
+        ### potential changes
+        
+        
+        # audio = AudioSegment.from_wav(path)
+        # audio = audio.set_channels(1)
+        # audio.set_sample_rate(16000)
+        # audio.export(path, format='wav')
+        
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_output:
+            temp_output_path = temp_output.name
+        
+        # Use FFmpeg to convert the audio to mono (-ac 1) and change the sample rate to 16kHz (-ar 16000)
+        os.system(f"ffmpeg -i {path} -ac 1 -ar 16000 {temp_output_path} -y")
+        
+        # After processing, replace the original file with the processed one
+        shutil.move(temp_output_path, path)
     except Exception as e:
         logger.error(f"Error during audio preprocessing: {e}")
     logger.info(f"Audio {path} preprocessing success!") 
 
 
-async def perform_diarization(path: os.path, model) -> List[Tuple[Segment,str]]:
+def perform_diarization(path: os.path, model) -> List[Tuple[Segment,str]]:
     """
 
     Args:
@@ -72,7 +86,6 @@ def calculate_iou(transcript_segment: Segment, diarization_segment: Segment) -> 
     Returns:
         float: Value represents how both segments were aligned
     """
-    logger.info("Starting calculating IOU!")
     try:
         intersect_seg = transcript_segment.__and__(diarization_segment)
         total_seg = transcript_segment.__or__(diarization_segment)
@@ -81,7 +94,6 @@ def calculate_iou(transcript_segment: Segment, diarization_segment: Segment) -> 
         total_duration = total_seg.duration
         iou = duration_intersect / total_duration
 
-        logger.info("Calculating IOU finished!")
         return iou
     except Exception as e:
         logger.error("Error in IOU calculations")
@@ -103,7 +115,6 @@ def create_speaker_sentences(transcript_segment: Segment, diarization_segment: S
         Example:
         ['Hello','world',...]
     """
-    logger.info("Starting creating speaker sentences!")
     #just big numbers so we can find value closest to 0
     start_dist = 100
     end_dist = 100
@@ -130,11 +141,14 @@ def create_speaker_sentences(transcript_segment: Segment, diarization_segment: S
 
     #we iterate again to find words in the middle and create sentence related to
     #diarization speaker segment proposed
+    
+    #potentiall change
+    # time_start -= 0.1
+    # time_end += 0.1
     for word in transcript_segment['words']:
         if word['start'] >= time_start and word['end'] <= time_end:
             sentence.append(word['word'])
 
-    logger.info("Creation speaker sentences successfull!")
     return sentence
 
 
@@ -183,4 +197,40 @@ def get_text_for_llm_prepared(sentences_list: List[Tuple[List[str],str]]) -> str
             sentences.append(out_str)
     full_text = "\n".join(sentences)
     logger.info("Preparation of string for LLM successfull!")  
+    return full_text
+
+
+def match_diarization_to_transcript(diarization, word_timestamps):
+    dialogue = []  # Lista do przechowywania całego dialogu
+    current_speaker = None  # Zmienna do śledzenia aktualnego mówcy
+    current_speaker_text = []  # Lista słów aktualnego mówcy
+
+    # Iteruj po transkrypcie
+    for word in word_timestamps:
+        word_start = word['start']
+        word_end = word['end']
+        word_text = word['text']
+        
+        # Znajdź segment mówcy, który obejmuje dane słowo
+        for segment, _, speaker_label in diarization.itertracks(yield_label=True):
+            segment_start = segment.start
+            segment_end = segment.end
+
+            # Sprawdź, czy słowo pasuje do segmentu czasowego mówcy
+            if word_start >= segment_start and word_end <= segment_end:
+                if current_speaker != speaker_label:
+                    # Jeśli zmienia się mówca, zapisz dotychczasowy tekst i przejdź do nowego
+                    if current_speaker_text:
+                        dialogue.append(f"{current_speaker}: {' '.join(current_speaker_text)}")
+                    current_speaker = speaker_label
+                    current_speaker_text = [word_text]  # Zacznij nowy tekst dla nowego mówcy
+                else:
+                    # Jeśli to ten sam mówca, dodaj słowo do jego aktualnej wypowiedzi
+                    current_speaker_text.append(word_text)
+                break
+
+    # Dodaj ostatnią wypowiedź do dialogu
+    if current_speaker_text:
+        dialogue.append(f"{current_speaker}: {' '.join(current_speaker_text)}")
+    full_text = "\n".join(dialogue)
     return full_text

@@ -4,9 +4,9 @@ set-up:
 	pip install -e .
 
 prepare:
-	./utils/dir_setup.sh
+	./project_utils/dir_setup.sh
 	
-	
+
 download:
 	@if [ ! -f MODEL_PATH ]; then \
 		poetry run huggingface-cli download TheBloke/Llama-2-7b-Chat-GGUF llama-2-7b-chat.Q5_K_M.gguf --local-dir ./llm/models/; \

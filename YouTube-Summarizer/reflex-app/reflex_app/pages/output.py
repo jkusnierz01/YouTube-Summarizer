@@ -53,10 +53,11 @@ def output() -> rx.Component:
                 webkit_text_fill_color="transparent",  # Ensures text color fills with gradient
                 text_shadow="2px 2px 4px rgba(0, 0, 0, 0.5)",
                 margin_top="2em",  # Add margin to position the text better
-                size="8",
+                size="12",
                 as_="h1",
+                line_height=1.2
             ),
-            padding="3em",
+            padding="2em",
         ),
         rx.center(
             rx.cond(

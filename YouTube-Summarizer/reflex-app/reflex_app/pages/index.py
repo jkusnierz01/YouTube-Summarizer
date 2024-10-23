@@ -17,6 +17,7 @@ class FormInputState(rx.State):
         try:
             response_redirect = requests.post(
                 url=f"http://backend:8080/process?url={self.url}")
+            print("Response received!")
         except Exception as e:
             print(f"Exception: {e}, response: {response_redirect}")
             self.is_loading = False  # Stop loading on error

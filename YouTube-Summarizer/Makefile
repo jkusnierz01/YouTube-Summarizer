@@ -1,7 +1,5 @@
 ### Getting the model
 MODEL_PATH="./llm/models/llama-2-7b-chat.Q5_K_M.gguf"
-set-up:
-	pip install -e .
 
 prepare:
 	./project_utils/dir_setup.sh
@@ -18,7 +16,7 @@ clean-cache:
 	rm -rf ./llm/models/.cache
 
 
-get-model: set-up prepare download clean-cache
+get-model: prepare download clean-cache
 
 
 ### UNIT TESTS

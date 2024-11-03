@@ -25,10 +25,10 @@ class FormInputState(rx.State):
             if response_redirect.status_code == 200:
                 print("Success!")
                 request_id = response_redirect.json()['request_id']
-                self.is_loading = False  # Stop loading on success
+                self.is_loading = False 
                 return rx.redirect(f"http://localhost:3000/output?{request_id}")
             else:
-                self.is_loading = False  # Stop loading if failure occurs
+                self.is_loading = False  
                 raise Exception
 
     def check_regex(self, url_: str):

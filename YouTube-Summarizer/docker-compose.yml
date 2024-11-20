@@ -15,8 +15,17 @@ services:
       dockerfile: ./backend/Dockerfile
     ports:
       - "8080:8080"
+    volumes:
+      - ./results:/code/app/results
     environment:
       - HUGGING_FACE_TOKEN
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     networks:
       - app-network
   llm:

@@ -1,5 +1,6 @@
 import logging
 import logging.config
+import os
 
 def setup_logging(service_name: str, log_file: str = "service.log", log_level=logging.INFO):
     """Sets up logging configuration for the current microservice."""
@@ -39,3 +40,14 @@ def setup_logging(service_name: str, log_file: str = "service.log", log_level=lo
     }
 
     logging.config.dictConfig(logging_config)
+
+
+def save_prompt_data(full_text:str) -> bool:
+    try:
+        os.makedirs("/code/app/results", exist_ok=True)
+        with open("/code/app/results/result.txt", 'w') as file:
+            file.write(full_text)
+        return True
+    except FileNotFoundError:
+        print("ERROR")
+        return False

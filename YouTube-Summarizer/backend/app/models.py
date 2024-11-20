@@ -3,7 +3,9 @@ import whisperx
 import torch
 from pyannote.audio import Pipeline
 import os
-from ctc_forced_aligner import load_alignment_model
+import logging
+
+logger = logging.getLogger(__name__)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -17,7 +19,7 @@ def load_whisper():
 
 def load_whisperx():
     try:
-        model_name = "medium"
+        model_name = "medium.en"
         model = whisperx.load_model(model_name, device)
         return model
     except Exception as e:
@@ -26,12 +28,10 @@ def load_whisperx():
 
 
 def load_aligner():
+    logger.info("Loading English alignment model")
     try:
-        alignment_model, alignment_tokenizer = load_alignment_model(
-            device,
-            dtype=torch.float16 if device == "cuda" else torch.float32,
-        )
-        return alignment_model, alignment_tokenizer
+        align_model, align_metadata = whisperx.load_align_model(language_code="en", device=device)
+        return align_model, align_metadata
     except Exception as e:
         print(e)
         raise

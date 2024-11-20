@@ -200,37 +200,62 @@ def get_text_for_llm_prepared(sentences_list: List[Tuple[List[str],str]]) -> str
     return full_text
 
 
-def match_diarization_to_transcript(diarization, word_timestamps):
-    dialogue = []  # Lista do przechowywania całego dialogu
-    current_speaker = None  # Zmienna do śledzenia aktualnego mówcy
-    current_speaker_text = []  # Lista słów aktualnego mówcy
+# diarization.py
 
-    # Iteruj po transkrypcie
-    for word in word_timestamps:
-        word_start = word['start']
-        word_end = word['end']
-        word_text = word['text']
-        
-        # Znajdź segment mówcy, który obejmuje dane słowo
-        for segment, _, speaker_label in diarization.itertracks(yield_label=True):
-            segment_start = segment.start
-            segment_end = segment.end
+def match_diarization_to_transcript(diarization_segments, transcription):
+    dialogue = []
+    current_speaker = None
+    current_speaker_text = []
 
-            # Sprawdź, czy słowo pasuje do segmentu czasowego mówcy
-            if word_start >= segment_start and word_end <= segment_end:
-                if current_speaker != speaker_label:
-                    # Jeśli zmienia się mówca, zapisz dotychczasowy tekst i przejdź do nowego
-                    if current_speaker_text:
-                        dialogue.append(f"{current_speaker}: {' '.join(current_speaker_text)}")
-                    current_speaker = speaker_label
-                    current_speaker_text = [word_text]  # Zacznij nowy tekst dla nowego mówcy
+    # Access word segments from the transcription result
+    word_segments = transcription.get("word_segments", [])
+    if not word_segments:
+        # Handle the case where word_segments might be empty or missing
+        return ""
+
+
+    # Initialize index to keep track of which diarization segment we're on
+    diar_idx = 0
+    num_diar_segments = len(diarization_segments)
+
+    for word in word_segments:
+        try:
+            word_start = word['start']
+            word_end = word['end']
+            word_text = word['word']
+
+            # Move through diarization segments to find the matching one
+            while diar_idx < num_diar_segments:
+                segment, speaker_label = diarization_segments[diar_idx]
+                segment_start = segment.start
+                segment_end = segment.end
+
+                # Check if word falls within the current diarization segment
+                if word_end <= segment_end:
+                    if current_speaker != speaker_label:
+                        # Speaker has changed
+                        if current_speaker_text:
+                            dialogue.append(f"{current_speaker}: {' '.join(current_speaker_text)}")
+                        current_speaker = speaker_label
+                        current_speaker_text = [word_text]
+                    else:
+                        # Same speaker, continue accumulating words
+                        current_speaker_text.append(word_text)
+                    break
                 else:
-                    # Jeśli to ten sam mówca, dodaj słowo do jego aktualnej wypowiedzi
-                    current_speaker_text.append(word_text)
-                break
+                    # Move to the next diarization segment
+                    diar_idx += 1
 
-    # Dodaj ostatnią wypowiedź do dialogu
+            if diar_idx >= num_diar_segments:
+                # No more diarization segments left; handle as needed
+                break
+        except Exception as e:
+            logger.error(f"Could not process this word segment due to: {e}")
+            continue
+
+    # Append any remaining words
     if current_speaker_text:
         dialogue.append(f"{current_speaker}: {' '.join(current_speaker_text)}")
+
     full_text = "\n".join(dialogue)
     return full_text

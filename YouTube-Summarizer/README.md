@@ -42,18 +42,6 @@ docker run -v absolute_path:/models -p 8000:8000 llm -m /models/llama-2-7b-chat.
 
 TO BE CONTINUED
 
-```python
-
-
-# returns 'words'
-foobar.pluralize('word')
-
-# returns 'geese'
-foobar.pluralize('goose')
-
-# returns 'phenomenon'
-foobar.singularize('phenomena')
-```
 
 ## Contributing
 

@@ -41,4 +41,5 @@ def make_whisperx_transcription(audio, model, alignment_model, alignment_metadat
     except Exception as e:
         logger.error(f"Transcription unsuccessfull! {e}")
         
+
         

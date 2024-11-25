@@ -8,28 +8,37 @@ import re
 class FormInputState(rx.State):
     url: str = ""
     is_disable: bool = True
-    is_loading: bool = False  # New state to track loading
+    is_process_unsuccessful: bool = False
+    reason: str = None
 
+    def change(self):
+        self.is_process_unsuccessful = not (self.is_process_unsuccessful)
+        self.reason = None
+        
+        
     def submit(self, form_data: dict):
         self.url = form_data.get("url")
-        self.is_loading = True  # Start loading when submission begins
-
+        
+        if self.is_process_unsuccessful:
+            self.change()
         try:
             response_redirect = requests.post(
                 url=f"http://backend:8080/process?url={self.url}")
             print("Response received!")
         except Exception as e:
-            print(f"Exception: {e}, response: {response_redirect}")
-            self.is_loading = False  # Stop loading on error
+            print(f"Exception: {e}")
+            self.is_process_unsuccessful = True
+            self.reason = "Unable to connect to the backend server. Please try again later."
         else:
             if response_redirect.status_code == 200:
-                print("Success!")
-                request_id = response_redirect.json()['request_id']
-                self.is_loading = False  # Stop loading on success
-                return rx.redirect(f"http://localhost:3000/output?{request_id}")
+                request_id = response_redirect.json().get('request_id')
+                if request_id is not None:
+                    return rx.redirect(f"http://localhost:3000/output?{request_id}")
+                # If no request_id is returned
             else:
-                self.is_loading = False  # Stop loading if failure occurs
-                raise Exception
+                # Handle other response codes (e.g., 400, 500)
+                self.is_process_unsuccessful = True
+                self.reason = response_redirect.json().get('detail', "An unknown error occurred.")
 
     def check_regex(self, url_: str):
         self.url = url_
@@ -42,6 +51,19 @@ class FormInputState(rx.State):
         except:
             pass
 
+class CondState(rx.State):
+    show_first: bool = False
+    show_second: bool = False
+    show_second: bool = False
+
+    def change_first(self):
+        self.show_first = not (self.show_first)
+
+    def change_second(self):
+        self.show_second = not (self.show_second)
+
+    def change_third(self):
+        self.show_second = not (self.show_second)
 
 def index() -> rx.Component:
     """Main page component with form and loading bar."""
@@ -99,13 +121,42 @@ def index() -> rx.Component:
                     on_submit=FormInputState.submit,
                     reset_on_submit=True
                 ),
-                rx.cond(
-                    FormInputState.is_loading,
-                    rx.progress(is_indeterminate=True, color_scheme="orange", size="lg"),  # Loading bar
-                    rx.text("")  # Empty text when not loading
-                )
+                rx.center(
+                    rx.cond(
+                        FormInputState.is_process_unsuccessful,
+                        rx.box(
+                            rx.text(
+                                "Process Unsuccessful",
+                                font_size="1.2em",
+                                font_weight="bold",
+                                color="#ff4d4f",  # Light red color
+                                margin_bottom="0.5em",
+                                text_align="center",
+                            ),
+                            rx.text(
+                                FormInputState.reason,
+                                font_size="1em",
+                                color="#ff7875",  # Softer red color for details
+                                line_height="1.5",
+                                font_family="'Montserrat', sans-serif",
+                                text_align="center",
+                                padding="1em",
+                                border="1px solid #ffa39e",
+                                border_radius="8px",
+                                background="#fff1f0",
+                                box_shadow="0px 4px 6px rgba(0, 0, 0, 0.1)",
+                                max_width="600px",  # Constrain max width of the box
+                                margin="1em auto",  # Center the box and add spacing
+                                word_wrap="break-word",  # Break long words to prevent overflow
+                                overflow="hidden",  # Ensure no content overflows the box
+                            ),
+                            max_width="100%",  # Prevent the box from exceeding the parent container
+                        ),
+                    )
+                ),
             ),
             direction="column",
             justify="center",
         ),
     )
+

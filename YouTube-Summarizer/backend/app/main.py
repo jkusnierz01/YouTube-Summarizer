@@ -81,15 +81,21 @@ async def pipeline(url: str):
                 ml_models['align_metadata'], 
                 device
             )
-            print(transcription)
+            
             if not transcription:
-                raise HTTPException(status_code=500, detail="Transcription failed.")
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Transcription failed. Ensure the video language matches the model's supported languages."
+                )
             
             diarization = perform_diarization(path, ml_models["speaker_diarization"])
             
             data_to_prompt = match_diarization_to_transcript(diarization, transcription)
             if not data_to_prompt:
-                raise HTTPException(status_code=500, detail="Failed to match diarization to transcription.")
+                raise HTTPException(
+                    status_code=500, 
+                    detail="Failed to match diarization to transcription."
+                )
         else:
             transcription_list, transcription = make_transcription(path, ml_models["whisper"])
             diarization_list = perform_diarization(path, ml_models["speaker_diarization"])

@@ -37,11 +37,14 @@ and do not forget to accept all user conditions required here (https://huggingfa
 
 ## DEMO
 
-https://github.com/user-attachments/assets/323402b5-3924-4640-bf9a-cabe77c31d8d
-
+https://github.com/user-attachments/assets/bf843078-491f-4c6c-92e7-31394ca49a96
 
 #### Transcription:
 The Joker:"Want know how I got these scars? My father was a drinker and a fiend. And one night he goes off crazier than usual. Mommy gets the kitchen knife to defend herself. He doesn't like that. Not one bit. So, me watching, he takes the knife to her, laughing while he does it. He turns to me, and he says, 'why so serious?' He comes at me with the knife. 'Why so serious?!'. He sticks the blade in my mouth. 'Let's put a smile on that face!' And why so serious?"
+
+
+
+
 
 
 

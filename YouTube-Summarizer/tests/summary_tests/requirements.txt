@@ -1,0 +1,4 @@
+requests
+rouge-score
+bert-score
+pydub

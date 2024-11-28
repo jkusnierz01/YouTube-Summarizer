@@ -24,3 +24,8 @@ run-unit-test:
 	python -m unittest tests.unit_tests
 
 test: run-unit-test
+
+run-summ-test:
+	./tests/summary_tests/run_summ_test.sh
+
+summary_test: run-summ-test

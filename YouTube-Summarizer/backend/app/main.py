@@ -1,6 +1,6 @@
 import os
 import tempfile
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile
 from contextlib import asynccontextmanager
 import uuid
 from diarization import perform_diarization, calculate_iou, get_text_for_llm_prepared, create_speaker_sentences, match_diarization_to_transcript
@@ -13,7 +13,8 @@ from utils import setup_logging, save_prompt_data
 import logging
 import whisperx
 import torch
-import sys
+import tempfile
+import shutil
 
 ml_models = {}
 summarization = {}
@@ -106,3 +107,39 @@ async def pipeline(url: str):
         summarization[request_id] = summary
         return {"request_id": request_id}
 
+
+@app.post("/test-endpoint")
+async def test_endpoint(file: UploadFile):
+        device = "cuda"
+        
+        fd, tmp_file = tempfile.mkstemp(".wav")
+        os.close(fd)
+        with open(tmp_file, 'wb') as f:
+            shutil.copyfileobj(file.file, f)
+
+        audio = whisperx.load_audio(tmp_file)
+        
+        transcription = make_whisperx_transcription(
+            audio, 
+            ml_models["whisper"], 
+            ml_models['align_model'], 
+            ml_models['align_metadata'], 
+            device
+        )
+        
+        if not transcription:
+            raise HTTPException(
+                status_code=400, 
+                detail="Transcription failed. Ensure the video language matches the model's supported languages."
+            )
+        
+        diarization = perform_diarization(tmp_file, ml_models["speaker_diarization"])
+        
+        data_to_prompt = match_diarization_to_transcript(diarization, transcription)
+        if not data_to_prompt:
+            raise HTTPException(
+                status_code=500, 
+                detail="Failed to match diarization to transcription."
+            )
+        summary = request_llm(data_to_prompt)
+        return {"summary": summary}

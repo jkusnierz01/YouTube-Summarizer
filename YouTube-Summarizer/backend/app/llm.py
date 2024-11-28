@@ -23,7 +23,7 @@ def create_prompt(transcription:str) -> str:
 def request_llm(speakers_transcription: str):
     logger.info(f"Starting request to LLM Server!")
     PROMPT = create_prompt(speakers_transcription)
-    data = {'prompt': PROMPT, "n_predict":128}
+    data = {'prompt': PROMPT, "n_predict":512, "max_tokens":1024, "temperature": 0.7}
     header = {'Content-type': 'application/json'}
     try:
         response = requests.post(

@@ -6,6 +6,7 @@ torch==2.0.0
 torchaudio==2.0.1
 torchvision==0.15.1
 huggingface-hub==0.24.7
+python-multipart
 
 # Backend-specific dependencies
 fastapi==0.110.1

@@ -18,49 +18,41 @@ Then run:
 make get-model
 ```
 to download llama-2_7b.gguf model file (around 5gb).
+
+
 After that export your Hugging Face Token by running command:
 ```bash
-export HUGGING_FACE_TOKEN="your_token"
+export HUGGING_FACE_TOKEN=<your_token>
 ```
 This is needed to properly run application in docker containers (needed for pyannote model).
-and do not forget to accept (THIS HAS TO BE CHANGED - THINK ABOUT GETTING MODEL LOCALLY OR BY GITHUB REPO)
+and do not forget to accept all user conditions required here (https://huggingface.co/pyannote/speaker-diarization-3.1)
 
-```bash
-export DOCKER_BUILDKIT=1
-```
+
+
 ## Usage
 
-```bash
-curl --request POST \    --url http://0.0.0.0:8000/completion \     
-    --header "Content-Type: application/json" \
-    --data '{"prompt": "Building a website can be done in 10 simple steps:","n_predict": 128}' 2>/dev/null | jq -C | less
-```
-
-```bash
-docker run -v absolute_path:/models -p 8000:8000 llm -m /models/llama-2-7b-chat.Q5_K_M.gguf --port 8000 --host 0.0.0.0 -n 512
-```
-
-TO BE CONTINUED
-
-```python
 
 
-# returns 'words'
-foobar.pluralize('word')
 
-# returns 'geese'
-foobar.pluralize('goose')
 
-# returns 'phenomenon'
-foobar.singularize('phenomena')
-```
+## DEMO
 
-## Contributing
+[Joker Monologue](samples/scars.wav)
 
-Pull requests are welcome. For major changes, please open an issue first
-to discuss what you would like to change.
+#### Transcription:
+The Joker:"Want know how I got these scars? My father was a drinker and a fiend. And one night he goes off crazier than usual. Mommy gets the kitchen knife to defend herself. He doesn't like that. Not one bit. So, me watching, he takes the knife to her, laughing while he does it. He turns to me, and he says, 'why so serious?' He comes at me with the knife. 'Why so serious?!'. He sticks the blade in my mouth. 'Let's put a smile on that face!' And why so serious?"
 
-Please make sure to update tests as appropriate.
+
+## CITATIONS
+
+@inproceedings{bert-score,
+  title={BERTScore: Evaluating Text Generation with BERT},
+  author={Tianyi Zhang* and Varsha Kishore* and Felix Wu* and Kilian Q. Weinberger and Yoav Artzi},
+  booktitle={International Conference on Learning Representations},
+  year={2020},
+  url={https://openreview.net/forum?id=SkeHuCVFDr}
+}
+
 
 ## License
 

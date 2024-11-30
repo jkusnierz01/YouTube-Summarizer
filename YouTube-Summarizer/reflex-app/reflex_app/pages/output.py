@@ -11,7 +11,7 @@ class State(rx.State):
         match = re.search(rf"^/output/\?(?P<request_id>[A-Za-z0-9].+)", self.router_data['asPath'])
         request_id = match.group('request_id')
         try:
-            transcription = requests.get(f"http://backend:8080/get_transcription?request_id={request_id}")
+            transcription = requests.get(f"http://backend:8080/get_summary?request_id={request_id}")
             self.transcription = transcription.json()['transcription']
             self.is_received = True
         except Exception as e:

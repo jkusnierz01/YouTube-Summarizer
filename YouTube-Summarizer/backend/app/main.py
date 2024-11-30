@@ -56,8 +56,8 @@ def match_diarization_and_transcription(transcription_list: List[Segment], diari
     return get_text_for_llm_prepared(full_output)
     
 
-@app.get("/get_transcription")
-async def get_transc(request_id:str):
+@app.get("/get_summary")
+async def get_summary(request_id:str):
     print(f"Received request_id: {request_id}")
     if request_id in summarization:
         result = summarization[request_id]

@@ -40,7 +40,15 @@ curl --request POST \    --url http://0.0.0.0:8000/completion \
 docker run -v absolute_path:/models -p 8000:8000 llm -m /models/llama-2-7b-chat.Q5_K_M.gguf --port 8000 --host 0.0.0.0 -n 512
 ```
 
-TO BE CONTINUED
+
+## Licensing
+This project uses code from multiple open-source projects with different licenses:
+
+- **Whisper Model** is licensed under the MIT License. See [LICENSE-MIT]for details.
+- **Pyannote.audio Speaker-diarization 3.1 model** is licensed under the MIT License. See [LICENSE-MIT](./LICENSE-MIT) for details.
+- **CTC Forced Aligner** is licensed under the BSD License. See [LICENSE-BSD](./LICENSE-BSD) for details.
+
+You must comply with the terms of both licenses when using this project.
 
 
 ## Contributing

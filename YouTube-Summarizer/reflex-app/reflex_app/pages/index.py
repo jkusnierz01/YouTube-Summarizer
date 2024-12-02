@@ -7,30 +7,18 @@ import re
 class FormInputState(rx.State):
     url: str = ""
     is_disable: bool = True
-    is_process_unsuccessful: bool = False
-    reason: str = None
-
-    def change(self):
-        self.is_process_unsuccessful = not (self.is_process_unsuccessful)
-        self.reason = None
         
         
     def submit(self, form_data: dict):
         self.url = form_data.get("url")
-        
-        if self.is_process_unsuccessful:
-            self.is_process_unsuccessful = False  # Reset unsuccessful state
-            self.reason = None  # Clear the reason message
 
         try:
             response_redirect = requests.post(
-                url=f"http://backend:8080/process?url={self.url}")
-            print("Response received!")
+                        url="http://backend:8080/process",
+                        json={"url": self.url}  # Sending as JSON in the body
+                    )
         except Exception as e:
-            print(f"Exception: {e}")
-            self.is_process_unsuccessful = True
-            self.reason = "Unable to connect to the backend server. Please try again later."
-            return
+            return rx.window_alert(f"Unable to connect to the backend server. Please try again later. Exception - {e}")
         else:
             if response_redirect.status_code == 200:
                 request_id = response_redirect.json().get('request_id')
@@ -38,8 +26,8 @@ class FormInputState(rx.State):
                     return rx.redirect(f"http://localhost:3000/output?{request_id}")
             else:
                 # Handle other response codes (e.g., 400, 500)
-                self.is_process_unsuccessful = True
-                self.reason = response_redirect.json().get('detail', "An unknown error occurred.")
+                reason = response_redirect.json().get('detail', "An unknown error occurred.")
+                return rx.window_alert(f"Status code: {response_redirect.status_code} - {reason}")
 
 
     def check_regex(self, url_: str):
@@ -109,37 +97,6 @@ def index() -> rx.Component:
                     ),
                     on_submit=FormInputState.submit,
                     reset_on_submit=True
-                ),
-                rx.center(
-                    rx.cond(
-                        FormInputState.is_process_unsuccessful,
-                        rx.text(
-                            f"Process Unsuccessful: {FormInputState.reason}",
-                            font_size="1.2em",
-                            font_weight="bold",
-                            color="#ff4d4f",  # Light red color
-                            margin_bottom="0.5em",
-                            text_align="center",
-                        ),
-                            # rx.text(
-                            #     FormInputState.reason,
-                            #     font_size="1em",
-                            #     color="#ff7875",  # Softer red color for details
-                            #     line_height="1.5",
-                            #     font_family="'Montserrat', sans-serif",
-                            #     text_align="center",
-                            #     padding="1em",
-                            #     border="1px solid #ffa39e",
-                            #     border_radius="8px",
-                            #     background="#fff1f0",
-                            #     box_shadow="0px 4px 6px rgba(0, 0, 0, 0.1)",
-                            #     max_width="600px",  # Constrain max width of the box
-                            #     margin="1em auto",  # Center the box and add spacing
-                            #     word_wrap="break-word",  # Break long words to prevent overflow
-                            #     overflow="hidden",  # Ensure no content overflows the box
-                            # ),
-                            # max_width="100%",  # Prevent the box from exceeding the parent container
-                    )
                 ),
             ),
             direction="column",

@@ -15,6 +15,7 @@ import whisperx
 import torch
 import tempfile
 import shutil
+from pydantic import BaseModel
 
 ml_models = {}
 summarization = {}
@@ -22,6 +23,8 @@ summarization = {}
 setup_logging("backend-service",log_file = 'backend.log')
 logger = logging.getLogger(__name__)
 
+class ProcessRequest(BaseModel):
+    url: str
 
 
 @asynccontextmanager
@@ -66,7 +69,8 @@ async def get_summary(request_id:str):
         raise HTTPException(status_code=404, detail="RequestID is not found!")
 
 @app.post("/process")
-async def pipeline(url: str):
+async def pipeline(request: ProcessRequest):
+    url = request.url
     request_id = str(uuid.uuid4())
     with tempfile.TemporaryDirectory() as fd:
         os.system(f"yt-dlp -x --audio-format wav -P {fd} -o audio.wav {url}")
@@ -142,4 +146,4 @@ async def test_endpoint(file: UploadFile):
                 detail="Failed to match diarization to transcription."
             )
         summary = request_llm(data_to_prompt)
-        return {"summary": summary}
+        return {"summary": summary, 'data_to_prompt':data_to_prompt, 'transcription':transcription}

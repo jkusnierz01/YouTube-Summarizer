@@ -43,8 +43,12 @@ https://github.com/user-attachments/assets/bf843078-491f-4c6c-92e7-31394ca49a96
 **The Joker**:*"Well, you look nervous. Is it the scars? You want to know how I got 'em? Come here. Hey! Look at me. So I had a wife, beautiful, like you, who tells me I worry too much. Who tells me I ought to smile more. Who gambles and gets in deep with the sharks. One day, they carve her face. And we have no money for surgeries. She can't take it. I just want to see her smile again, hm? I just want her to know that I don't care about the scars. So I stick a razor in my mouth and do this to myself. And you know what? She can't stand the sight of me! She leaves. Now I see the funny side.""*
 
 
-
-
+#### Summary:
+```
+{
+  "summary": " The speaker describes how they got a scar on their mouth from their father's drunken attack. The father attacked the speaker's mother with a knife, and when the speaker tried to defend themselves, the father turned to them and stuck a knife in their mouth, telling them to put a smile on their face."
+}
+```
 
 
 

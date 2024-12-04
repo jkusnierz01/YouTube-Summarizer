@@ -105,7 +105,7 @@ async def pipeline(request: ProcessRequest):
             transcription_list, transcription = make_transcription(path, ml_models["whisper"])
             diarization_list = perform_diarization(path, ml_models["speaker_diarization"])
             data_to_prompt = match_diarization_and_transcription(transcription_list, diarization_list, transcription)
-        if save_prompt_data(data_to_prompt):
+        if save_prompt_data(data_to_prompt, transcription):
             logger.info("Saved prompt to results directory!")
         summary = request_llm(data_to_prompt)
         summarization[request_id] = summary

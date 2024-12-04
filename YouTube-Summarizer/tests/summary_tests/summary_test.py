@@ -40,7 +40,7 @@ def calulate_bert_metric(filename:str):
             'f1':str(f1.numpy()[0])
         }
         out_data.append(bert_score_dict)
-    with open("bert_score_result.json",'w') as file:
+    with open("bert_score_result2.json",'w') as file:
         json.dump(out_data, file)
     
 def test():
@@ -55,7 +55,7 @@ def test():
     print(len(summary_files))
     for idx, (audio_filename, summ_filename) in enumerate(zip(audio_files, summary_files)):
         try:
-            if idx < 6:
+            if idx < 26:
                 continue
             audio_full_path = os.path.join(AUDIO_DIR, audio_filename)
             summ_full_path = os.path.join(SUMMARY_DIR, summ_filename)
@@ -101,7 +101,7 @@ def test():
         except Exception as e:
             print(f"Exception: {e}")
             continue
-    with open("summary_test_results.json", 'w') as file:
+    with open("addition2_summary_test_results.json", 'w') as file:
         json.dump(data_list, file, indent=4)
     # df=pd.DataFrame(data=data_list, columns=['IDX', 'Generated Summary', 'Ground Truth Summary', 'Audio Duration', 'Exec Time'])
     # df.to_csv("bert-test-result.csv")

@@ -1,0 +1,17 @@
+1.912 - 3.593 | Text:  Are you here too, Lucy?
+4.794 - 7.036 | Text: I'm the one who mentioned you to Peter.
+7.937 - 9.818 | Text: You too are my saviors.
+11.12 - 13.281 | Text: I still don't understand what you mean.
+14.362 - 20.407 | Text: He needs to design a sales website for his company but cannot find it outsourced.
+21.728 - 25.932 | Text: It's not that I can't find it, it's that the budget is too low.
+27.032 - 27.993 | Text: How much budget? $5,000.
+31.835 - 32.755 | Text:  Not too low.
+33.156 - 36.077 | Text: You can create it with web creation software.
+37.237 - 40.478 | Text: The site is complex and needs programming.
+41.719 - 43.159 | Text: It's hard at that price.
+44.26 - 46.421 | Text: Why don't you ask for more budget?
+47.681 - 49.962 | Text: I asked but was not accepted.
+50.642 - 54.263 | Text: Perhaps our company is in financial difficulty.
+55.464 - 58.125 | Text: The company's finances are in good shape.
+59.085 - 62.519 | Text:  Why be stingy with such an important project?
+63.643 - 65.671 | Text: Or bosses are looking to save

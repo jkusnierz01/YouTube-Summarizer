@@ -45,9 +45,7 @@ https://github.com/user-attachments/assets/bf843078-491f-4c6c-92e7-31394ca49a96
 
 #### Summary:
 ```
-{
-  "summary": " The speaker describes how they got a scar on their mouth from their father's drunken attack. The father attacked the speaker's mother with a knife, and when the speaker tried to defend themselves, the father turned to them and stuck a knife in their mouth, telling them to put a smile on their face."
-}
+" The speaker describes how they got a scar on their mouth from their father's drunken attack. The father attacked the speaker's mother with a knife, and when the speaker tried to defend themselves, the father turned to them and stuck a knife in their mouth, telling them to put a smile on their face."
 ```
 
 

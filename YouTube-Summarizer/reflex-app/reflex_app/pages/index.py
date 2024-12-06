@@ -4,36 +4,37 @@ from rxconfig import config
 import requests
 import re
 
-
 class FormInputState(rx.State):
-    """_summary_
-
-    Args:
-        rx (_type_): _description_
-    """
     url: str = ""
     is_disable: bool = True
-
+        
+        
     def submit(self, form_data: dict):
         self.url = form_data.get("url")
+
         try:
             response_redirect = requests.post(
-                url=f"http://backend:8080/process?url={self.url}")
+                        url="http://backend:8080/process",
+                        json={"url": self.url}  # Sending as JSON in the body
+                    )
         except Exception as e:
-            print(f"Exception: {e}, response: {response_redirect}")
+            return rx.window_alert(f"Unable to connect to the backend server. Please try again later. Exception - {e}")
         else:
             if response_redirect.status_code == 200:
-                print("Success!")
-                request_id = response_redirect.json()['request_id']
-                return rx.redirect(f"http://localhost:3000/output?{request_id}")
+                request_id = response_redirect.json().get('request_id')
+                if request_id is not None:
+                    return rx.redirect(f"http://localhost:3000/output?{request_id}")
             else:
-                raise Exception
+                # Handle other response codes (e.g., 400, 500)
+                reason = response_redirect.json().get('detail', "An unknown error occurred.")
+                return rx.window_alert(f"Status code: {response_redirect.status_code} - {reason}")
+
 
     def check_regex(self, url_: str):
         self.url = url_
         regex = r"https://www\.youtube\.com/watch\?v=(.+)"
         try:
-            if re.search(regex, self.url) != None:
+            if re.search(regex, self.url) is not None:
                 self.is_disable = False
             else:
                 self.is_disable = True
@@ -42,11 +43,8 @@ class FormInputState(rx.State):
 
 
 def index() -> rx.Component:
-    """_summary_
+    """Main page component with form and loading bar."""
 
-    Returns:
-        rx.Component: _description_
-    """
     return rx.container(
         rx.center(
             rx.heading(
@@ -70,7 +68,7 @@ def index() -> rx.Component:
         rx.center(
             rx.text(
                 rx.text.strong("Input "),
-                "link to YouTube video under ",
+                "link to YouTube video below",
                 font_size="1em",
                 font_family="'Montserrat', sans-serif",
                 margin_bottom="1em",
@@ -105,3 +103,4 @@ def index() -> rx.Component:
             justify="center",
         ),
     )
+

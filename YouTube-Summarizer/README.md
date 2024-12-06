@@ -18,50 +18,50 @@ Then run:
 make get-model
 ```
 to download llama-2_7b.gguf model file (around 5gb).
+
+
 After that export your Hugging Face Token by running command:
 ```bash
-export HUGGING_FACE_TOKEN="your_token"
+export HUGGING_FACE_TOKEN=<your_token>
 ```
 This is needed to properly run application in docker containers (needed for pyannote model).
-and do not forget to accept (THIS HAS TO BE CHANGED - THINK ABOUT GETTING MODEL LOCALLY OR BY GITHUB REPO)
+and do not forget to accept all user conditions required here (https://huggingface.co/pyannote/speaker-diarization-3.1)
 
-```bash
-export DOCKER_BUILDKIT=1
-```
+
+
 ## Usage
 
-```bash
-curl --request POST \    --url http://0.0.0.0:8000/completion \     
-    --header "Content-Type: application/json" \
-    --data '{"prompt": "Building a website can be done in 10 simple steps:","n_predict": 128}' 2>/dev/null | jq -C | less
-```
-
-```bash
-docker run -v absolute_path:/models -p 8000:8000 llm -m /models/llama-2-7b-chat.Q5_K_M.gguf --port 8000 --host 0.0.0.0 -n 512
-```
-
-TO BE CONTINUED
-
-```python
 
 
-# returns 'words'
-foobar.pluralize('word')
 
-# returns 'geese'
-foobar.pluralize('goose')
 
-# returns 'phenomenon'
-foobar.singularize('phenomena')
-```
+## DEMO
 
-## Contributing
+https://github.com/user-attachments/assets/bf843078-491f-4c6c-92e7-31394ca49a96
 
-Pull requests are welcome. For major changes, please open an issue first
-to discuss what you would like to change.
+#### Transcription:
+**The Joker**:*"Well, you look nervous. Is it the scars? You want to know how I got 'em? Come here. Hey! Look at me. So I had a wife, beautiful, like you, who tells me I worry too much. Who tells me I ought to smile more. Who gambles and gets in deep with the sharks. One day, they carve her face. And we have no money for surgeries. She can't take it. I just want to see her smile again, hm? I just want her to know that I don't care about the scars. So I stick a razor in my mouth and do this to myself. And you know what? She can't stand the sight of me! She leaves. Now I see the funny side.""*
 
-Please make sure to update tests as appropriate.
+
+#### Summary:
+*"The speaker describes how they got a scar on their mouth from their father's drunken attack. The father attacked the speaker's mother with a knife, and when the speaker tried to defend themselves, the father turned to them and stuck a knife in their mouth, telling them to put a smile on their face."*
+
+
+
+
+
+## CITATIONS
+
+@inproceedings{bert-score,
+  title={BERTScore: Evaluating Text Generation with BERT},
+  author={Tianyi Zhang* and Varsha Kishore* and Felix Wu* and Kilian Q. Weinberger and Yoav Artzi},
+  booktitle={International Conference on Learning Representations},
+  year={2020},
+  url={https://openreview.net/forum?id=SkeHuCVFDr}
+}
+
 
 ## License
+
 
 [MIT](https://choosealicense.com/licenses/mit/)

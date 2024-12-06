@@ -7,7 +7,7 @@ readme = "README.md"
 package-mode = false  # Disable packaging mode
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 numpy = "<2"
 nltk = "3.6.5"
 accelerate = "^0.33.0"
@@ -17,13 +17,14 @@ huggingface-hub = "^0.24.7"
 pydub = "^0.25.1"
 
 
-[tool.poetry.group.fastapi.dependencies]
+[tool.poetry.group.backend.dependencies]
 openai-whisper = {git = "https://github.com/openai/whisper.git"}
 uuid = "^1.30"
 yt-dlp = "^2024.8.6"
 fastapi = "0.110.1"
 uvicorn = "^0.22.0"
-pyannote-audio = "^3.3.2"
+pyannote-audio = "^3.1.1"
+whisperx = {git = "https://github.com/m-bain/whisperx.git"}
 
 [tool.poetry.group.reflex.dependencies]
 reflex = "^0.5.9"

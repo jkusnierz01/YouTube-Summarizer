@@ -1,10 +1,11 @@
-from pydub import AudioSegment
 from typing import List, Tuple
 import os
 from pyannote.core.segment import Segment
 import logging
 import psutil
 import torch
+import tempfile
+import shutil
 
 
 logger = logging.getLogger(__name__)
@@ -23,16 +24,29 @@ def audio_preprocessing(path: os.path) -> None:
     """  
     logger.info(f"Audio {path} preprocessing started!")  
     try:  
-        audio = AudioSegment.from_wav(path)
-        audio = audio.set_channels(1)
-        audio.set_sample_rate(16000)
-        audio.export(path, format='wav')
+        
+        ### potential changes
+        
+        
+        # audio = AudioSegment.from_wav(path)
+        # audio = audio.set_channels(1)
+        # audio.set_sample_rate(16000)
+        # audio.export(path, format='wav')
+        
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_output:
+            temp_output_path = temp_output.name
+        
+        # Use FFmpeg to convert the audio to mono (-ac 1) and change the sample rate to 16kHz (-ar 16000)
+        os.system(f"ffmpeg -i {path} -ac 1 -ar 16000 {temp_output_path} -y")
+        
+        # After processing, replace the original file with the processed one
+        shutil.move(temp_output_path, path)
     except Exception as e:
         logger.error(f"Error during audio preprocessing: {e}")
     logger.info(f"Audio {path} preprocessing success!") 
 
 
-async def perform_diarization(path: os.path, model) -> List[Tuple[Segment,str]]:
+def perform_diarization(path: os.path, model) -> List[Tuple[Segment,str]]:
     """
 
     Args:
@@ -72,7 +86,6 @@ def calculate_iou(transcript_segment: Segment, diarization_segment: Segment) -> 
     Returns:
         float: Value represents how both segments were aligned
     """
-    logger.info("Starting calculating IOU!")
     try:
         intersect_seg = transcript_segment.__and__(diarization_segment)
         total_seg = transcript_segment.__or__(diarization_segment)
@@ -81,7 +94,6 @@ def calculate_iou(transcript_segment: Segment, diarization_segment: Segment) -> 
         total_duration = total_seg.duration
         iou = duration_intersect / total_duration
 
-        logger.info("Calculating IOU finished!")
         return iou
     except Exception as e:
         logger.error("Error in IOU calculations")
@@ -103,7 +115,6 @@ def create_speaker_sentences(transcript_segment: Segment, diarization_segment: S
         Example:
         ['Hello','world',...]
     """
-    logger.info("Starting creating speaker sentences!")
     #just big numbers so we can find value closest to 0
     start_dist = 100
     end_dist = 100
@@ -130,11 +141,14 @@ def create_speaker_sentences(transcript_segment: Segment, diarization_segment: S
 
     #we iterate again to find words in the middle and create sentence related to
     #diarization speaker segment proposed
+    
+    #potentiall change
+    # time_start -= 0.1
+    # time_end += 0.1
     for word in transcript_segment['words']:
         if word['start'] >= time_start and word['end'] <= time_end:
             sentence.append(word['word'])
 
-    logger.info("Creation speaker sentences successfull!")
     return sentence
 
 
@@ -183,4 +197,65 @@ def get_text_for_llm_prepared(sentences_list: List[Tuple[List[str],str]]) -> str
             sentences.append(out_str)
     full_text = "\n".join(sentences)
     logger.info("Preparation of string for LLM successfull!")  
+    return full_text
+
+
+# diarization.py
+
+def match_diarization_to_transcript(diarization_segments, transcription):
+    dialogue = []
+    current_speaker = None
+    current_speaker_text = []
+
+    # Access word segments from the transcription result
+    word_segments = transcription.get("word_segments", [])
+    if not word_segments:
+        # Handle the case where word_segments might be empty or missing
+        return ""
+
+
+    # Initialize index to keep track of which diarization segment we're on
+    diar_idx = 0
+    num_diar_segments = len(diarization_segments)
+
+    for word in word_segments:
+        try:
+            word_start = word['start']
+            word_end = word['end']
+            word_text = word['word']
+
+            # Move through diarization segments to find the matching one
+            while diar_idx < num_diar_segments:
+                segment, speaker_label = diarization_segments[diar_idx]
+                segment_start = segment.start
+                segment_end = segment.end
+
+                # Check if word falls within the current diarization segment
+                if word_end <= segment_end:
+                    if current_speaker != speaker_label:
+                        # Speaker has changed
+                        if current_speaker_text:
+                            dialogue.append(f"{current_speaker}: {' '.join(current_speaker_text)}")
+                        current_speaker = speaker_label
+                        current_speaker_text = [word_text]
+                    else:
+                        # Same speaker, continue accumulating words
+                        current_speaker_text.append(word_text)
+                    break
+                else:
+                    # Move to the next diarization segment
+                    diar_idx += 1
+
+            if diar_idx >= num_diar_segments:
+                # No more diarization segments left; handle as needed
+                break
+        except Exception as e:
+            logger.error(f"Could not process this word segment due to: {e}")
+            continue
+
+    # Append any remaining words
+    if current_speaker_text:
+        dialogue.append(f"{current_speaker}: {' '.join(current_speaker_text)}")
+
+    full_text = "\n".join(dialogue)
     return full_text

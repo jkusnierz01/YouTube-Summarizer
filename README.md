@@ -1,6 +1,6 @@
 # YouTube Summarizer
 
-YouTube Summarizer is python web app for summarizing and creating highlights of videos uploaded on YouTube platform. Based on audio of video and by using models: (Whisper, Pyannote.audio - speaker diarization model and LLama 2 7B) application performs translation, speaker diarization and summarization. 
+YouTube Summarizer is python web app for summarizing and creating highlights of videos uploaded on YouTube platform. Based on audio of video and by using models: (*WhisperX*, *speaker diarization 3.1* from pyannote.audio and *LLama2-7B* as language model) application performs translation, speaker diarization and summarization. To download audio from YouTube *yt-dlp* is used. 
 
 ## Installation
 

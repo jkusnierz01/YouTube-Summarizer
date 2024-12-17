@@ -25,6 +25,7 @@ run-unit-test:
 
 test: run-unit-test
 
+#SUMMARY TESTS - BERT SCORE
 run-summ-test:
 	./tests/summary_tests/run_summ_test.sh
 

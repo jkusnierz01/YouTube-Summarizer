@@ -1,0 +1,12 @@
+SPEAKER_01: Are you here too, Lucy?
+SPEAKER_02: I'm the one who mentioned you to Peter.
+SPEAKER_01: You too are my saviors. I still don't understand what you mean.
+SPEAKER_02: He needs to design a sales website for his company but cannot find it outsourced.
+SPEAKER_00: It's not that I can't find it, it's that the budget is too low. How much budget?
+SPEAKER_01: Not too low. You can create it with web creation software.
+SPEAKER_00: The site is complex and needs programming. It's hard at that price.
+SPEAKER_02: Why don't you ask for more budget?
+SPEAKER_00: I asked but was not accepted. Perhaps our company is in financial difficulty.
+SPEAKER_01: The company's finances are in good shape.
+SPEAKER_02: Why be stingy with such an important project?
+SPEAKER_01: Or bosses are looking to save

@@ -1,18 +1,20 @@
 FROM python:3.11-slim
 
+RUN apt-get update && apt-get install -y unzip curl && apt-get clean
+
+RUN apt-get update && \
+    apt-get install -y build-essential git
+
 WORKDIR /code
 
-COPY ./pyproject.toml ./poetry.lock /code/
+COPY ./reflex-app/requirements-frontend.txt /code/
 
-RUN pip install poetry && \
-    poetry install
+RUN pip install --no-cache-dir -r requirements-frontend.txt
 
 COPY ./reflex-app/ /code/reflex
-
-RUN apt-get update && apt-get install -y unzip curl && apt-get clean
 
 WORKDIR /code/reflex/
 
 EXPOSE 3000
 
-CMD [ "poetry", "run", "reflex", "run"]
+CMD ["reflex", "run"]

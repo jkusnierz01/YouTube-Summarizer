@@ -1,0 +1,7 @@
+accelerate==0.33.0
+nltk==3.6.5
+numpy==1.26.4
+reflex-chakra==0.5.10
+reflex-hosting-cli==0.1.13
+reflex-motion==0.0.1
+reflex==0.5.10
